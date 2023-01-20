@@ -1,15 +1,32 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
+	"fmt"
+	"net/http"
+
+	"github.com/gorilla/mux"
 )
-var Router * gin.Engine
+
 func main() {
-	r := gin.Default()
-	r.GET("/", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "Hello world!",
-		})
-	})
-	r.Run()
+	r := mux.NewRouter()
+	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodGet {
+			fmt.Fprint(w, `
+				<html>
+					<body>
+						<form method="post">
+							<input type="text" id="textbox" name="textbox"/>
+							<button type="submit" id="button">Submit</button>
+						</form>
+					</body>
+				</html>
+			`)
+		} else if r.Method == http.MethodPost {
+			r.ParseForm()
+			text := r.FormValue("textbox")
+			fmt.Fprintf(w, "You entered: %s", text)
+		}
+	}).Methods(http.MethodGet, http.MethodPost)
+
+	http.ListenAndServe(":8080", r)
 }
